@@ -1,9 +1,8 @@
-import React, { useState, useMemo, useEffect } from 'react';
+import React, { useState, useMemo } from 'react';
 import { Transaction } from '../types';
 import { formatCurrency } from '../utils';
-import { Eye, EyeOff, TrendingUp, TrendingDown, ArrowRight, Settings, Sparkles, Target } from 'lucide-react';
+import { Eye, EyeOff, TrendingUp, TrendingDown, ArrowRight, Settings, Target } from 'lucide-react';
 import { TransactionList } from './TransactionList';
-import { getFinancialInsight } from '../services/ai';
 
 interface DashboardProps {
   balance: number;
@@ -23,19 +22,10 @@ export const Dashboard: React.FC<DashboardProps> = ({
   monthlyLimit
 }) => {
   const [showBalance, setShowBalance] = useState(true);
-  const [aiTip, setAiTip] = useState<string>("Analisando suas finanças...");
 
   const today = new Date();
   const currentMonth = today.getMonth();
   const currentYear = today.getFullYear();
-
-  useEffect(() => {
-    const fetchTip = async () => {
-        const tip = await getFinancialInsight(transactions, balance);
-        setAiTip(tip);
-    };
-    fetchTip();
-  }, [transactions.length]); // Atualiza quando mudar o número de transações
 
   const monthExpense = transactions
     .filter(t => {
@@ -144,22 +134,6 @@ export const Dashboard: React.FC<DashboardProps> = ({
                 </span>
             </div>
          </div>
-      </div>
-
-      {/* AI Insight Card */}
-      <div className="glass-card p-4 rounded-[28px] border-theme/20 relative overflow-hidden group hover:bg-theme/5 transition-all">
-          <div className="absolute -right-4 -top-4 text-theme opacity-5 group-hover:opacity-10 transition-opacity">
-            <Sparkles className="w-24 h-24" />
-          </div>
-          <div className="flex items-center gap-3 mb-2">
-            <div className="w-6 h-6 rounded-full bg-theme/20 flex items-center justify-center">
-                <Sparkles className="w-3.5 h-3.5 text-theme" />
-            </div>
-            <p className="text-[10px] font-bold uppercase tracking-widest text-theme">Dica do Fluxo (IA)</p>
-          </div>
-          <p className="text-sm text-white/80 font-medium italic leading-relaxed">
-            "{aiTip}"
-          </p>
       </div>
 
       {/* Budget Tracker */}

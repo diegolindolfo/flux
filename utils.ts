@@ -1,3 +1,4 @@
+
 import { CATEGORIES } from './constants';
 import { ParsedInput, TransactionType, Transaction } from './types';
 
@@ -63,50 +64,73 @@ export const parseSmartInput = (input: string): ParsedInput => {
 const cleanDescription = (raw: string): string => {
     if (!raw) return 'Sem descrição';
     
+    // Normalize and clean basic characters
     let text = raw.trim();
 
-    // 1. Remove sufixos entre parênteses (ex: "Nome (Transferência enviada)")
-    text = text.replace(/\s*\([^)]*\)/g, "");
-
-    // 2. Remove prefixos bancários comuns
-    // Regex complexa para pegar variações de texto bancário
-    const prefixes = [
-        "compra no d[ée]bito( via)?( nupay)?",
-        "compra no cr[ée]dito( via)?",
-        "pagamento( de)?( fatura)?( para)?",
-        "transfer[êe]ncia( recebida| enviada)?( pelo)?( pix)?( via)?( open banking)?",
-        "envio de pix",
-        "pix enviado( para)?",
-        "pix recebido( de)?",
-        "dep[óo]sito",
-        "recarga de celular",
-        "ajuste de",
-        "estorno",
-        "resgate"
+    // 1. Common Bank Prefixes to remove immediately
+    const prefixesToRemove = [
+        "Transferência enviada pelo Pix",
+        "Transferência recebida pelo Pix",
+        "Transferência enviada",
+        "Transferência recebida",
+        "Pix enviado",
+        "Pix recebido",
+        "Compra no débito",
+        "Compra no crédito",
+        "Pagamento de fatura",
+        "Pagamento de boleto",
+        "Envio de Pix",
+        "Recebimento de Pix"
     ];
 
-    const prefixRegex = new RegExp(`^(${prefixes.join('|')})[:\\s]*`, 'i');
-    const match = text.match(prefixRegex);
+    prefixesToRemove.forEach(p => {
+        const regex = new RegExp(`^${p}\\s*-\\s*|^${p}\\s*:\\s*|^${p}\\s*`, 'i');
+        text = text.replace(regex, "");
+    });
 
-    // Se encontrou prefixo, remove APENAS se sobrar algo depois (para não deixar string vazia)
-    if (match && text.replace(match[0], '').trim().length > 1) {
-        text = text.replace(match[0], '');
+    // 2. Split by dash or slash and analyze parts
+    // Bank entries often look like: Prefix - Name - CPF - Bank Name - Details
+    const parts = text.split(/\s*-\s*|\s*\/\s*/);
+    
+    const isUselessPart = (p: string) => {
+        const low = p.toLowerCase();
+        // Masked CPF/CNPJ or IDs (e.g., •••.299.883-••)
+        if (p.includes('•') || p.includes('*')) return true;
+        // Mostly numbers
+        if ((p.match(/\d/g) || []).length > 5 && !p.match(/[a-zA-Z]{3,}/)) return true;
+        // Bank specific keywords
+        if (low.includes('bco') || low.includes('agencia') || low.includes('conta') || low.includes('agência') || low.includes('itau') || low.includes('bradesco') || low.includes('nubank') || low.includes('santander') || low.includes('pagseguro')) return true;
+        // Technical keywords
+        if (low.includes('autenticacao') || low.includes('identificador') || low.includes('vencimento')) return true;
+        return false;
+    };
+
+    // Filter parts and find the first one that looks like a name/company
+    const validParts = parts.filter(p => p.length > 2 && !isUselessPart(p));
+    
+    if (validParts.length > 0) {
+        text = validParts[0];
     }
 
-    // 3. Remove números/IDs/CPFs no início (ex: "37 294 948 Bruno...", "123456 Mercado")
-    // Remove qualquer sequência de caracteres que não seja letra no começo
-    text = text.replace(/^[^a-zA-ZÀ-ÿ]+/, "");
+    // 3. Final cleaning of the chosen text
+    // Remove bank details in parentheses
+    text = text.replace(/\s*\([^)]*\)/g, "");
+    // Remove common account/bank patterns in string
+    text = text.replace(/(ag|cc|agencia|conta|banco)[:\s\-]*[0-9xX\-.]+/gi, "");
+    // Remove long numeric sequences
+    text = text.replace(/\b\d{4,}\b/g, "");
+    // Remove non-alphanumeric at start/end
+    text = text.replace(/^[^a-zA-ZÀ-ÿ0-9]+/, "");
+    text = text.replace(/[^a-zA-ZÀ-ÿ0-9]+$/, "");
+    // Cleanup spacing
+    text = text.replace(/\s{2,}/g, " ");
 
-    // 4. Remove conectores soltos no inicio ou fim
-    text = text.replace(/^(de|para|a)\s+/i, "");
-
-    // 5. Title Case (Primeira letra maiúscula)
+    // 4. Title Case
     text = text.toLowerCase().replace(/(?:^|\s)\S/g, function(a) { return a.toUpperCase(); });
-    
-    // Corrige conectores para minúsculo (de, da, do...)
-    text = text.replace(/\s(De|Da|Do|Dos|Das|E)\s/g, (match) => match.toLowerCase());
+    // Fix connectors to lowercase
+    text = text.replace(/\s(De|Da|Do|Dos|Das|E|Pelo|Pela)\s/g, (match) => match.toLowerCase());
 
-    return text.trim() || raw; // Retorna original se limpou tudo
+    return text.trim() || raw;
 };
 
 export const parseCSV = async (file: File): Promise<Transaction[]> => {
@@ -114,14 +138,12 @@ export const parseCSV = async (file: File): Promise<Transaction[]> => {
     const lines = text.split(/\r?\n/);
     const transactions: Transaction[] = [];
 
-    // Identify header row
     const startIndex = lines[0]?.toLowerCase().includes('data') ? 1 : 0;
 
     for (let i = startIndex; i < lines.length; i++) {
         const line = lines[i].trim();
         if (!line) continue;
 
-        // Manual CSV parser to handle quotes containing commas
         const parts: string[] = [];
         let current = '';
         let inQuote = false;
@@ -139,18 +161,14 @@ export const parseCSV = async (file: File): Promise<Transaction[]> => {
         }
         parts.push(current);
 
-        // Clean quotes and trim
         const cols = parts.map(p => p.trim().replace(/^"|"$/g, ''));
         
-        // Expected format: Data, Valor, Identificador, Descrição
         if (cols.length < 4) continue;
         
         const [dateStr, valueStr, id, rawDesc] = cols;
 
-        // Date Parsing: 03/02/2026 -> ISO
         const dateParts = dateStr.split('/');
         if (dateParts.length !== 3) continue;
-        // Use noon to avoid timezone shifting dates
         const date = new Date(`${dateParts[2]}-${dateParts[1]}-${dateParts[0]}T12:00:00Z`);
         if (isNaN(date.getTime())) continue;
 
@@ -158,11 +176,8 @@ export const parseCSV = async (file: File): Promise<Transaction[]> => {
         if (isNaN(rawValue)) continue;
 
         const type: TransactionType = rawValue >= 0 ? 'income' : 'expense';
-        
-        // Clean Description
         const desc = cleanDescription(rawDesc);
         
-        // Auto-categorize
         const descLower = desc.toLowerCase();
         let categoryId = type === 'income' ? '8' : '7';
         

@@ -3,17 +3,23 @@ import { Dashboard } from './components/Dashboard';
 import { SmartInput } from './components/SmartInput';
 import { HistoryView } from './components/HistoryView';
 import { StatsView } from './components/StatsView';
+import { SettingsView } from './components/SettingsView';
 import { TransactionDetailsModal } from './components/TransactionDetailsModal';
 import { Transaction, ViewState } from './types';
 import { Toaster, toast } from 'sonner';
 import { Home, List, Plus, PieChart } from 'lucide-react';
 
 const STORAGE_KEY = 'fluxo_v2_data';
+const BUDGET_KEY = 'fluxo_v2_budget';
 
 const App: React.FC = () => {
   const [view, setView] = useState<ViewState>('dashboard');
   const [isInputOpen, setIsInputOpen] = useState(false);
   const [selectedTransaction, setSelectedTransaction] = useState<Transaction | null>(null);
+  const [monthlyLimit, setMonthlyLimit] = useState<number>(() => {
+    const saved = localStorage.getItem(BUDGET_KEY);
+    return saved ? parseFloat(saved) : 3000; // Default limit
+  });
   
   const [transactions, setTransactions] = useState<Transaction[]>(() => {
     try {
@@ -27,6 +33,10 @@ const App: React.FC = () => {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(transactions));
   }, [transactions]);
 
+  useEffect(() => {
+    localStorage.setItem(BUDGET_KEY, monthlyLimit.toString());
+  }, [monthlyLimit]);
+
   // Dynamic Theme Engine
   const balance = useMemo(() => {
     return transactions.reduce((acc, t) => t.type === 'income' ? acc + t.amount : acc - t.amount, 0);
@@ -35,12 +45,10 @@ const App: React.FC = () => {
   useEffect(() => {
     const root = document.documentElement;
     if (balance >= 0) {
-        // Emerald Green Theme
         root.style.setProperty('--theme-color', '#00e676');
         root.style.setProperty('--theme-soft', 'rgba(0, 230, 118, 0.15)');
         root.style.setProperty('--theme-glow', 'rgba(0, 230, 118, 0.2)');
     } else {
-        // Rose Red Theme
         root.style.setProperty('--theme-color', '#ff4081');
         root.style.setProperty('--theme-soft', 'rgba(255, 64, 129, 0.15)');
         root.style.setProperty('--theme-glow', 'rgba(255, 64, 129, 0.2)');
@@ -57,7 +65,6 @@ const App: React.FC = () => {
     setIsInputOpen(false);
     toast.success(t.type === 'income' ? 'Receita adicionada' : 'Gasto registrado');
     
-    // Haptic feedback
     if (navigator.vibrate) navigator.vibrate(50);
   };
 
@@ -65,16 +72,12 @@ const App: React.FC = () => {
       setTransactions(prev => {
           const existingIds = new Set(prev.map(t => t.id));
           const unique = newItems.filter(t => !existingIds.has(t.id));
-          
           if (unique.length === 0) {
               toast.info('Nenhuma transação nova encontrada.');
               return prev;
           }
-
           const combined = [...unique, ...prev];
-          // Sort by date descending
           combined.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
-          
           toast.success(`${unique.length} transações importadas!`);
           return combined;
       });
@@ -85,14 +88,17 @@ const App: React.FC = () => {
       toast.info('Item removido');
   };
 
+  const clearTransactions = () => {
+      setTransactions([]);
+      localStorage.removeItem(STORAGE_KEY);
+  };
+
   const updateCategory = (id: string, newCategoryId: string, updateSimilar: boolean) => {
       setTransactions(prev => {
           const target = prev.find(t => t.id === id);
           if (!target) return prev;
-
           let count = 0;
           const updated = prev.map(t => {
-             // Check for exact ID match OR (if flag is true) matching description
              if (t.id === id) {
                  count++;
                  return { ...t, categoryId: newCategoryId };
@@ -103,7 +109,6 @@ const App: React.FC = () => {
              }
              return t;
           });
-          
           if (updateSimilar && count > 1) {
               toast.success(`${count} transações atualizadas!`);
           } else {
@@ -117,16 +122,16 @@ const App: React.FC = () => {
     <div className="min-h-screen w-full flex justify-center bg-background text-white selection:bg-theme selection:text-black">
       <div className="w-full max-w-[480px] h-[100dvh] flex flex-col relative overflow-hidden bg-background md:border-x md:border-white/5 shadow-2xl">
           
-          {/* Ambient Background Glow */}
           <div className="absolute top-0 left-0 w-full h-1/2 bg-theme opacity-[0.03] blur-[120px] pointer-events-none transition-colors duration-1000" />
 
-          {/* Main Content */}
           <main className="flex-1 overflow-y-auto no-scrollbar relative z-10 pb-4">
             {view === 'dashboard' && (
                 <Dashboard 
                     balance={balance} 
                     transactions={transactions} 
+                    monthlyLimit={monthlyLimit}
                     onOpenHistory={() => setView('history')}
+                    onOpenSettings={() => setView('settings')}
                     onTransactionClick={setSelectedTransaction}
                 />
             )}
@@ -142,9 +147,14 @@ const App: React.FC = () => {
                     onTransactionClick={setSelectedTransaction}
                 />
             )}
+            {view === 'settings' && (
+                <SettingsView 
+                    onClearData={clearTransactions} 
+                    onBack={() => setView('dashboard')} 
+                />
+            )}
           </main>
 
-          {/* Floating Action Button & Nav */}
           <div className="absolute bottom-6 left-0 w-full px-4 z-50 pointer-events-none">
              <div className="glass rounded-[28px] p-2 flex items-center justify-between shadow-glass pointer-events-auto">
                 <button 
@@ -179,7 +189,6 @@ const App: React.FC = () => {
              </div>
           </div>
 
-          {/* Input Overlay */}
           {isInputOpen && (
               <SmartInput 
                   onClose={() => setIsInputOpen(false)} 
@@ -187,7 +196,6 @@ const App: React.FC = () => {
               />
           )}
 
-          {/* Transaction Details/Edit Modal */}
           {selectedTransaction && (
               <TransactionDetailsModal
                   transaction={selectedTransaction}

@@ -24,4 +24,9 @@ export interface ParsedInput {
   type: TransactionType;
 }
 
-export type ViewState = 'dashboard' | 'history' | 'add' | 'stats';
+export type ViewState = 'dashboard' | 'history' | 'add' | 'stats' | 'settings';
+
+export interface AppSettings {
+  monthlyLimit: number;
+  userName: string;
+}

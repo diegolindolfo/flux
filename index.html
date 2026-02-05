@@ -10,6 +10,8 @@
     
     <title>Fluxo</title>
 
+    <link rel="manifest" href="/manifest.json">
+    
     <!-- Preconnect for performance -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -25,24 +27,25 @@
               sans: ['"Plus Jakarta Sans"', 'sans-serif'],
             },
             colors: {
-              background: '#050505',
-              surface: '#0f0f0f',
+              background: '#020202', // Deeper black
+              surface: '#0A0A0A',
               // Dynamic Theme Colors
               theme: 'var(--theme-color)',
               'theme-soft': 'var(--theme-soft)',
             },
             boxShadow: {
-              'glass': '0 8px 32px 0 rgba(0, 0, 0, 0.5)',
-              'glow': '0 0 50px var(--theme-glow)',
+              'glass': '0 8px 32px 0 rgba(0, 0, 0, 0.3)',
+              'glow': '0 0 80px var(--theme-glow)',
             },
             animation: {
-              'slide-up': 'slideUp 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards',
-              'fade-in': 'fadeIn 0.3s ease-out forwards',
-              'scale-in': 'scaleIn 0.2s ease-out forwards',
+              'slide-up': 'slideUp 0.5s cubic-bezier(0.2, 0.8, 0.2, 1) forwards',
+              'fade-in': 'fadeIn 0.4s ease-out forwards',
+              'scale-in': 'scaleIn 0.3s cubic-bezier(0.2, 0.8, 0.2, 1) forwards',
+              'pulse-slow': 'pulseSlow 4s ease-in-out infinite',
             },
             keyframes: {
               slideUp: {
-                '0%': { transform: 'translateY(20px)', opacity: '0' },
+                '0%': { transform: 'translateY(30px)', opacity: '0' },
                 '100%': { transform: 'translateY(0)', opacity: '1' },
               },
               fadeIn: {
@@ -50,8 +53,12 @@
                 '100%': { opacity: '1' },
               },
               scaleIn: {
-                '0%': { transform: 'scale(0.95)', opacity: '0' },
+                '0%': { transform: 'scale(0.92)', opacity: '0' },
                 '100%': { transform: 'scale(1)', opacity: '1' },
+              },
+              pulseSlow: {
+                '0%, 100%': { opacity: '0.5' },
+                '50%': { opacity: '0.8' },
               }
             }
           }
@@ -60,50 +67,120 @@
     </script>
 
     <style>
-      /* Base Variables - Default Green */
+      /* Base Variables */
       :root {
-        --theme-color: #00e676; /* Bright Emerald */
-        --theme-soft: rgba(0, 230, 118, 0.15);
-        --theme-glow: rgba(0, 230, 118, 0.2);
+        --theme-color: #00e676;
+        --theme-soft: rgba(0, 230, 118, 0.1);
+        --theme-glow: rgba(0, 230, 118, 0.15);
       }
 
-      /* Global Reset */
-      * { -webkit-tap-highlight-color: transparent; outline: none !important; }
+      /* Global Reset & Typography */
+      * { 
+        -webkit-tap-highlight-color: transparent; 
+        outline: none !important; 
+        box-sizing: border-box;
+      }
       
       body {
-        background-color: #050505;
+        background-color: #020202;
         color: #ffffff;
         overscroll-behavior-y: none;
         -webkit-font-smoothing: antialiased;
-        transition: background-color 0.8s ease;
+        -moz-osx-font-smoothing: grayscale;
+        font-family: 'Plus Jakarta Sans', sans-serif;
+        overflow: hidden; 
       }
 
-      /* Utility: Hide Scrollbar but allow scroll */
+      /* Hide Arrows in Number Inputs */
+      input::-webkit-outer-spin-button,
+      input::-webkit-inner-spin-button {
+        -webkit-appearance: none;
+        margin: 0;
+      }
+      input[type=number] {
+        -moz-appearance: textfield;
+      }
+
+      /* Custom Range Slider (Drag Bar) */
+      input[type=range] {
+        -webkit-appearance: none;
+        width: 100%;
+        background: transparent;
+      }
+
+      input[type=range]:focus {
+        outline: none;
+      }
+
+      input[type=range]::-webkit-slider-runnable-track {
+        width: 100%;
+        height: 6px;
+        cursor: pointer;
+        background: rgba(255, 255, 255, 0.05);
+        border-radius: 10px;
+        border: 1px solid rgba(255, 255, 255, 0.02);
+      }
+
+      input[type=range]::-webkit-slider-thumb {
+        height: 24px;
+        width: 24px;
+        border-radius: 50%;
+        background: var(--theme-color);
+        cursor: pointer;
+        -webkit-appearance: none;
+        margin-top: -10px;
+        box-shadow: 0 0 15px var(--theme-glow);
+        border: 3px solid #020202;
+        transition: transform 0.2s ease;
+      }
+
+      input[type=range]:active::-webkit-slider-thumb {
+        transform: scale(1.2);
+      }
+
+      /* Selection Color */
+      ::selection {
+        background-color: var(--theme-color);
+        color: #000;
+      }
+
+      /* Scrollbar Hiding */
       .no-scrollbar::-webkit-scrollbar { display: none; }
       .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
 
-      /* Glassmorphism Utilities */
+      /* Advanced Glassmorphism */
       .glass {
-        background: rgba(20, 20, 20, 0.6);
-        backdrop-filter: blur(20px);
-        -webkit-backdrop-filter: blur(20px);
-        border: 1px solid rgba(255, 255, 255, 0.08);
+        background: rgba(18, 18, 18, 0.65);
+        backdrop-filter: blur(24px) saturate(180%);
+        -webkit-backdrop-filter: blur(24px) saturate(180%);
+        border-top: 1px solid rgba(255, 255, 255, 0.08);
+        border-bottom: 1px solid rgba(255, 255, 255, 0.02);
+        border-left: 1px solid rgba(255, 255, 255, 0.02);
+        border-right: 1px solid rgba(255, 255, 255, 0.02);
       }
 
       .glass-card {
-        background: linear-gradient(145deg, rgba(255,255,255,0.03) 0%, rgba(255,255,255,0.01) 100%);
-        backdrop-filter: blur(10px);
-        border: 1px solid rgba(255, 255, 255, 0.05);
+        background: linear-gradient(165deg, rgba(255,255,255,0.04) 0%, rgba(255,255,255,0.01) 100%);
+        backdrop-filter: blur(16px);
+        -webkit-backdrop-filter: blur(16px);
+        border-top: 1px solid rgba(255, 255, 255, 0.08);
+        border-bottom: 1px solid rgba(255, 255, 255, 0.02);
+        border-radius: 24px;
+        box-shadow: 0 4px 24px -1px rgba(0, 0, 0, 0.2);
       }
 
-      /* Smooth Transitions for Theme Changes */
       .theme-transition {
-        transition: color 0.6s ease, background-color 0.6s ease, border-color 0.6s ease, box-shadow 0.6s ease, fill 0.6s ease;
+        transition: 
+          color 0.6s cubic-bezier(0.4, 0, 0.2, 1), 
+          background-color 0.6s cubic-bezier(0.4, 0, 0.2, 1), 
+          border-color 0.6s cubic-bezier(0.4, 0, 0.2, 1), 
+          box-shadow 0.6s cubic-bezier(0.4, 0, 0.2, 1), 
+          fill 0.6s cubic-bezier(0.4, 0, 0.2, 1),
+          stroke 0.6s cubic-bezier(0.4, 0, 0.2, 1);
       }
 
-      /* Mobile Safe Areas */
-      .pb-safe { padding-bottom: env(safe-area-inset-bottom); }
-      .pt-safe { padding-top: env(safe-area-inset-top); }
+      .pb-safe { padding-bottom: calc(env(safe-area-inset-bottom) + 1rem); }
+      .pt-safe { padding-top: max(env(safe-area-inset-top), 1.5rem); }
     </style>
     
     <script type="importmap">
@@ -124,5 +201,16 @@
   <body>
     <div id="root"></div>
     <script type="module" src="/index.tsx"></script>
+    <script>
+      if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+          navigator.serviceWorker.register('/sw.js').then(registration => {
+            console.log('SW registered: ', registration);
+          }).catch(registrationError => {
+            console.log('SW registration failed: ', registrationError);
+          });
+        });
+      }
+    </script>
   </body>
 </html>

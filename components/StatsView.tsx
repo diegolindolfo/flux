@@ -2,7 +2,7 @@ import React, { useMemo } from 'react';
 import { Transaction } from '../types';
 import { CATEGORIES, CATEGORY_ICONS } from '../constants';
 import { formatCurrency } from '../utils';
-import { HelpCircle, TrendingDown, Calendar, ArrowUpRight, ArrowDownRight } from 'lucide-react';
+import { HelpCircle, Calendar, ArrowUpRight, ArrowDownRight, BarChart3 } from 'lucide-react';
 
 interface StatsViewProps {
   transactions: Transaction[];
@@ -44,6 +44,11 @@ export const StatsView: React.FC<StatsViewProps> = ({ transactions }) => {
 
   const monthName = new Date().toLocaleString('pt-BR', { month: 'long', year: 'numeric' });
 
+  // Chart Logic
+  const maxVal = Math.max(stats.totalIncome, stats.totalExpense, 1);
+  const incomeHeight = (stats.totalIncome / maxVal) * 100;
+  const expenseHeight = (stats.totalExpense / maxVal) * 100;
+
   return (
     <div className="pt-safe pb-28 px-6 animate-slide-up space-y-6">
         {/* Header */}
@@ -83,6 +88,46 @@ export const StatsView: React.FC<StatsViewProps> = ({ transactions }) => {
                         <p className="text-lg font-bold text-white leading-none">{formatCurrency(stats.totalExpense)}</p>
                     </div>
                 </div>
+            </div>
+        </div>
+
+        {/* Comparison Bar Chart */}
+        <div className="glass-card p-6 rounded-[28px] space-y-6">
+            <div className="flex items-center gap-2 mb-2">
+                <BarChart3 className="w-4 h-4 text-white/40" />
+                <h3 className="text-xs font-bold text-white/40 uppercase tracking-wider">Comparativo de Fluxo</h3>
+            </div>
+            
+            <div className="flex items-end justify-center gap-12 h-40 px-4">
+                {/* Income Bar */}
+                <div className="flex flex-col items-center gap-3 flex-1">
+                    <div className="relative w-full flex flex-col items-center justify-end h-32">
+                        <div 
+                            className="w-full max-w-[40px] bg-emerald-500 rounded-t-xl transition-all duration-1000 ease-out shadow-[0_0_20px_rgba(16,185,129,0.2)]"
+                            style={{ height: `${incomeHeight}%` }}
+                        />
+                    </div>
+                    <span className="text-[10px] font-bold text-white/40 uppercase tracking-widest">Entradas</span>
+                </div>
+
+                {/* Expense Bar */}
+                <div className="flex flex-col items-center gap-3 flex-1">
+                    <div className="relative w-full flex flex-col items-center justify-end h-32">
+                        <div 
+                            className="w-full max-w-[40px] bg-rose-500 rounded-t-xl transition-all duration-1000 ease-out shadow-[0_0_20px_rgba(244,63,94,0.2)]"
+                            style={{ height: `${expenseHeight}%` }}
+                        />
+                    </div>
+                    <span className="text-[10px] font-bold text-white/40 uppercase tracking-widest">Saídas</span>
+                </div>
+            </div>
+            
+            <div className="pt-2 border-t border-white/5 text-center">
+                <p className="text-[11px] text-white/30 font-medium">
+                    {stats.totalIncome > stats.totalExpense 
+                        ? "Você economizou este mês! 🎉" 
+                        : "Atenção: seus gastos superaram as receitas."}
+                </p>
             </div>
         </div>
 

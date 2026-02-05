@@ -2,25 +2,51 @@ import React, { useState, useEffect } from 'react';
 import { X, ArrowUp, TrendingDown, TrendingUp } from 'lucide-react';
 import { parseSmartInput, formatCurrency } from '../utils';
 import { ParsedInput, Transaction, TransactionType } from '../types';
+import { CATEGORIES } from '../constants';
 
 interface SmartInputProps {
   onClose: () => void;
   onSubmit: (t: Omit<Transaction, 'id' | 'date'>) => void;
+  history: Transaction[];
 }
 
-export const SmartInput: React.FC<SmartInputProps> = ({ onClose, onSubmit }) => {
+export const SmartInput: React.FC<SmartInputProps> = ({ onClose, onSubmit, history }) => {
   const [input, setInput] = useState('');
   const [manualType, setManualType] = useState<TransactionType | null>(null);
   const [parsed, setParsed] = useState<ParsedInput>({ amount: null, description: '', guessedCategory: null, type: 'expense' });
 
   useEffect(() => {
     const p = parseSmartInput(input);
-    // Se o usuário tocou manualmente em um tipo, mantemos ele a menos que ele mude o input drasticamente com keywords
+    
+    // 1. Check History for Smart Categorization
+    // If we have a description but the utils guessed "Others" or we just want to improve accuracy
+    if (p.description && p.description.length > 2) {
+        const normalizedInput = p.description.trim().toLowerCase();
+        
+        // Find the most recent transaction with a matching description
+        const previousMatch = history.find(t => 
+            t.description.toLowerCase().trim() === normalizedInput
+        );
+
+        if (previousMatch) {
+            const historyCategory = CATEGORIES.find(c => c.id === previousMatch.categoryId);
+            if (historyCategory) {
+                p.guessedCategory = historyCategory;
+                // Only override type if user hasn't manually set it
+                if (!manualType) {
+                    p.type = previousMatch.type;
+                }
+            }
+        }
+    }
+
+    // 2. Manual Type Override
     if (manualType) {
         p.type = manualType;
     }
+
     setParsed(p);
-  }, [input, manualType]);
+  }, [input, manualType, history]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();

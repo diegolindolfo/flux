@@ -10,15 +10,23 @@ import { Toaster, toast } from 'sonner';
 import { Home, List, Plus, PieChart } from 'lucide-react';
 
 const STORAGE_KEY = 'fluxo_v2_data';
-const BUDGET_KEY = 'fluxo_v2_budget';
+const SALARY_KEY = 'fluxo_v2_salary';
+const PERCENT_KEY = 'fluxo_v2_percent';
 
 const App: React.FC = () => {
   const [view, setView] = useState<ViewState>('dashboard');
   const [isInputOpen, setIsInputOpen] = useState(false);
   const [selectedTransaction, setSelectedTransaction] = useState<Transaction | null>(null);
-  const [monthlyLimit, setMonthlyLimit] = useState<number>(() => {
-    const saved = localStorage.getItem(BUDGET_KEY);
-    return saved ? parseFloat(saved) : 3000; // Default limit
+
+  // New Budget States
+  const [monthlySalary, setMonthlySalary] = useState<number>(() => {
+    const saved = localStorage.getItem(SALARY_KEY);
+    return saved ? parseFloat(saved) : 5000;
+  });
+  
+  const [safetyPercentage, setSafetyPercentage] = useState<number>(() => {
+    const saved = localStorage.getItem(PERCENT_KEY);
+    return saved ? parseFloat(saved) : 70; // Default 70%
   });
   
   const [transactions, setTransactions] = useState<Transaction[]>(() => {
@@ -28,14 +36,26 @@ const App: React.FC = () => {
     } catch { return []; }
   });
 
+  // Derived Limit
+  const monthlyLimit = useMemo(() => {
+    return monthlySalary * (safetyPercentage / 100);
+  }, [monthlySalary, safetyPercentage]);
+
   // Persistence
   useEffect(() => {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(transactions));
   }, [transactions]);
 
   useEffect(() => {
-    localStorage.setItem(BUDGET_KEY, monthlyLimit.toString());
-  }, [monthlyLimit]);
+    localStorage.setItem(SALARY_KEY, monthlySalary.toString());
+    localStorage.setItem(PERCENT_KEY, safetyPercentage.toString());
+  }, [monthlySalary, safetyPercentage]);
+
+  const updateBudgetConfig = (salary: number, percent: number) => {
+    setMonthlySalary(salary);
+    setSafetyPercentage(percent);
+    toast.success('Configuração de orçamento atualizada!');
+  };
 
   // Dynamic Theme Engine
   const balance = useMemo(() => {
@@ -46,12 +66,12 @@ const App: React.FC = () => {
     const root = document.documentElement;
     if (balance >= 0) {
         root.style.setProperty('--theme-color', '#00e676');
-        root.style.setProperty('--theme-soft', 'rgba(0, 230, 118, 0.15)');
-        root.style.setProperty('--theme-glow', 'rgba(0, 230, 118, 0.2)');
+        root.style.setProperty('--theme-soft', 'rgba(0, 230, 118, 0.08)');
+        root.style.setProperty('--theme-glow', 'rgba(0, 230, 118, 0.25)');
     } else {
         root.style.setProperty('--theme-color', '#ff4081');
-        root.style.setProperty('--theme-soft', 'rgba(255, 64, 129, 0.15)');
-        root.style.setProperty('--theme-glow', 'rgba(255, 64, 129, 0.2)');
+        root.style.setProperty('--theme-soft', 'rgba(255, 64, 129, 0.08)');
+        root.style.setProperty('--theme-glow', 'rgba(255, 64, 129, 0.25)');
     }
   }, [balance]);
 
@@ -64,7 +84,6 @@ const App: React.FC = () => {
     setTransactions(prev => [newTx, ...prev]);
     setIsInputOpen(false);
     toast.success(t.type === 'income' ? 'Receita adicionada' : 'Gasto registrado');
-    
     if (navigator.vibrate) navigator.vibrate(50);
   };
 
@@ -97,34 +116,24 @@ const App: React.FC = () => {
       setTransactions(prev => {
           const target = prev.find(t => t.id === id);
           if (!target) return prev;
-          let count = 0;
           const updated = prev.map(t => {
-             if (t.id === id) {
-                 count++;
-                 return { ...t, categoryId: newCategoryId };
-             }
+             if (t.id === id) return { ...t, categoryId: newCategoryId };
              if (updateSimilar && t.description.toLowerCase().trim() === target.description.toLowerCase().trim()) {
-                 count++;
                  return { ...t, categoryId: newCategoryId };
              }
              return t;
           });
-          if (updateSimilar && count > 1) {
-              toast.success(`${count} transações atualizadas!`);
-          } else {
-              toast.success('Categoria atualizada');
-          }
+          toast.success('Categoria atualizada');
           return updated;
       });
   };
 
   return (
-    <div className="min-h-screen w-full flex justify-center bg-background text-white selection:bg-theme selection:text-black">
-      <div className="w-full max-w-[480px] h-[100dvh] flex flex-col relative overflow-hidden bg-background md:border-x md:border-white/5 shadow-2xl">
-          
-          <div className="absolute top-0 left-0 w-full h-1/2 bg-theme opacity-[0.03] blur-[120px] pointer-events-none transition-colors duration-1000" />
+    <div className="min-h-screen w-full flex justify-center bg-black text-white selection:bg-theme selection:text-black">
+      <div className="w-full max-w-[480px] h-[100dvh] flex flex-col relative overflow-hidden bg-background md:border-x md:border-white/5 md:shadow-2xl">
+          <div className="absolute top-[-10%] left-[-10%] w-[120%] h-[60%] bg-theme opacity-[0.08] blur-[150px] pointer-events-none transition-colors duration-1000 will-change-transform" />
 
-          <main className="flex-1 overflow-y-auto no-scrollbar relative z-10 pb-4">
+          <main className="flex-1 overflow-y-auto no-scrollbar relative z-10 pb-24">
             {view === 'dashboard' && (
                 <Dashboard 
                     balance={balance} 
@@ -135,9 +144,7 @@ const App: React.FC = () => {
                     onTransactionClick={setSelectedTransaction}
                 />
             )}
-            {view === 'stats' && (
-                <StatsView transactions={transactions} />
-            )}
+            {view === 'stats' && <StatsView transactions={transactions} />}
             {view === 'history' && (
                 <HistoryView 
                     transactions={transactions} 
@@ -149,6 +156,9 @@ const App: React.FC = () => {
             )}
             {view === 'settings' && (
                 <SettingsView 
+                    currentSalary={monthlySalary}
+                    currentPercent={safetyPercentage}
+                    onUpdateConfig={updateBudgetConfig}
                     onClearData={clearTransactions} 
                     onBack={() => setView('dashboard')} 
                 />
@@ -156,55 +166,26 @@ const App: React.FC = () => {
           </main>
 
           <div className="absolute bottom-6 left-0 w-full px-4 z-50 pointer-events-none">
-             <div className="glass rounded-[28px] p-2 flex items-center justify-between shadow-glass pointer-events-auto">
-                <button 
-                    onClick={() => setView('dashboard')}
-                    className={`flex-1 h-12 rounded-[20px] flex items-center justify-center transition-all duration-300 ${view === 'dashboard' ? 'text-theme bg-white/5' : 'text-white/40 hover:text-white'}`}
-                >
-                    <Home className="w-6 h-6" strokeWidth={2.5} />
+             <div className="glass rounded-[28px] p-2 flex items-center justify-between shadow-glass pointer-events-auto backdrop-blur-2xl">
+                <button onClick={() => setView('dashboard')} className={`flex-1 h-12 rounded-[22px] flex items-center justify-center transition-all duration-300 ${view === 'dashboard' ? 'text-theme bg-white/5' : 'text-white/40'}`}>
+                    <Home className="w-6 h-6" />
                 </button>
-
-                <button 
-                    onClick={() => setView('stats')}
-                    className={`flex-1 h-12 rounded-[20px] flex items-center justify-center transition-all duration-300 ${view === 'stats' ? 'text-theme bg-white/5' : 'text-white/40 hover:text-white'}`}
-                >
-                    <PieChart className="w-6 h-6" strokeWidth={2.5} />
+                <button onClick={() => setView('stats')} className={`flex-1 h-12 rounded-[22px] flex items-center justify-center transition-all duration-300 ${view === 'stats' ? 'text-theme bg-white/5' : 'text-white/40'}`}>
+                    <PieChart className="w-6 h-6" />
                 </button>
-
                 <div className="mx-2">
-                    <button 
-                        onClick={() => setIsInputOpen(true)}
-                        className="w-14 h-14 rounded-full bg-theme text-black shadow-glow flex items-center justify-center transition-transform active:scale-95 hover:scale-105"
-                    >
+                    <button onClick={() => setIsInputOpen(true)} className="w-14 h-14 rounded-full bg-theme text-black shadow-glow flex items-center justify-center transition-transform active:scale-95">
                         <Plus className="w-7 h-7" strokeWidth={3} />
                     </button>
                 </div>
-
-                <button 
-                    onClick={() => setView('history')}
-                    className={`flex-1 h-12 rounded-[20px] flex items-center justify-center transition-all duration-300 ${view === 'history' ? 'text-theme bg-white/5' : 'text-white/40 hover:text-white'}`}
-                >
-                    <List className="w-6 h-6" strokeWidth={2.5} />
+                <button onClick={() => setView('history')} className={`flex-1 h-12 rounded-[22px] flex items-center justify-center transition-all duration-300 ${view === 'history' ? 'text-theme bg-white/5' : 'text-white/40'}`}>
+                    <List className="w-6 h-6" />
                 </button>
              </div>
           </div>
 
-          {isInputOpen && (
-              <SmartInput 
-                  onClose={() => setIsInputOpen(false)} 
-                  onSubmit={addTransaction}
-              />
-          )}
-
-          {selectedTransaction && (
-              <TransactionDetailsModal
-                  transaction={selectedTransaction}
-                  onClose={() => setSelectedTransaction(null)}
-                  onDelete={deleteTransaction}
-                  onUpdate={updateCategory}
-              />
-          )}
-
+          {isInputOpen && <SmartInput history={transactions} onClose={() => setIsInputOpen(false)} onSubmit={addTransaction} />}
+          {selectedTransaction && <TransactionDetailsModal transaction={selectedTransaction} onClose={() => setSelectedTransaction(null)} onDelete={deleteTransaction} onUpdate={updateCategory} />}
           <Toaster position="top-center" theme="dark" />
       </div>
     </div>

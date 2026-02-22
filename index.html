@@ -1,189 +1,197 @@
 <!DOCTYPE html>
 <html lang="pt-BR" class="dark">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
-    <meta name="theme-color" content="#000000" />
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <meta name="description" content="Fluxo - Controle Financeiro" />
-    
-    <title>Fluxo</title>
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
 
-    <link rel="manifest" href="/manifest.json">
-    
-    <!-- Preconnect for performance -->
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
+  <!-- ── PWA / Theme ──────────────────────────────────── -->
+  <meta name="theme-color" content="#050505" />
+  <meta name="background-color" content="#050505" />
+  <link rel="manifest" href="/manifest.json" />
 
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script>
-      tailwind.config = {
-        darkMode: 'class',
-        theme: {
-          extend: {
-            fontFamily: {
-              sans: ['"Plus Jakarta Sans"', 'sans-serif'],
+  <!-- ── iOS PWA ──────────────────────────────────────── -->
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="Fluxo" />
+
+  <!-- Apple touch icons (iOS requires these separately) -->
+  <link rel="apple-touch-icon" href="/icons/icon-192x192.png" />
+  <link rel="apple-touch-icon" sizes="152x152" href="/icons/icon-152x152.png" />
+  <link rel="apple-touch-icon" sizes="144x144" href="/icons/icon-144x144.png" />
+  <link rel="apple-touch-icon" sizes="128x128" href="/icons/icon-128x128.png" />
+
+  <!-- iOS Splash Screens (portrait) -->
+  <!-- iPhone 14 Pro Max -->
+  <link rel="apple-touch-startup-image"
+        media="screen and (device-width: 430px) and (device-height: 932px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)"
+        href="/icons/icon-512x512.png" />
+  <!-- iPhone 14 / 13 -->
+  <link rel="apple-touch-startup-image"
+        media="screen and (device-width: 390px) and (device-height: 844px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)"
+        href="/icons/icon-512x512.png" />
+  <!-- iPhone SE -->
+  <link rel="apple-touch-startup-image"
+        media="screen and (device-width: 375px) and (device-height: 667px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)"
+        href="/icons/icon-384x384.png" />
+
+  <!-- ── General Meta ─────────────────────────────────── -->
+  <meta name="description" content="Fluxo — Controle financeiro pessoal simples, rápido e offline." />
+  <meta name="application-name" content="Fluxo" />
+  <meta name="mobile-web-app-capable" content="yes" />
+
+  <!-- Favicon -->
+  <link rel="icon" type="image/png" sizes="32x32" href="/icons/icon-128x128.png" />
+  <link rel="icon" type="image/png" sizes="16x16" href="/icons/icon-72x72.png" />
+
+  <!-- ── Open Graph (share preview) ───────────────────── -->
+  <meta property="og:title" content="Fluxo — Controle Financeiro" />
+  <meta property="og:description" content="Controle financeiro pessoal simples, rápido e offline." />
+  <meta property="og:image" content="/icons/icon-512x512.png" />
+  <meta property="og:type" content="website" />
+
+  <title>Fluxo</title>
+
+  <!-- ── Fonts ────────────────────────────────────────── -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet" />
+
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['"Plus Jakarta Sans"', 'sans-serif'],
+          },
+          colors: {
+            background: '#020202',
+            surface: '#0A0A0A',
+            theme: 'var(--theme-color)',
+            'theme-soft': 'var(--theme-soft)',
+          },
+          boxShadow: {
+            'glass': '0 8px 32px 0 rgba(0, 0, 0, 0.3)',
+            'glow': '0 0 80px var(--theme-glow)',
+          },
+          animation: {
+            'slide-up': 'slideUp 0.5s cubic-bezier(0.2, 0.8, 0.2, 1) forwards',
+            'fade-in': 'fadeIn 0.4s ease-out forwards',
+            'scale-in': 'scaleIn 0.3s cubic-bezier(0.2, 0.8, 0.2, 1) forwards',
+            'pulse-slow': 'pulseSlow 4s ease-in-out infinite',
+          },
+          keyframes: {
+            slideUp: {
+              '0%': { transform: 'translateY(30px)', opacity: '0' },
+              '100%': { transform: 'translateY(0)', opacity: '1' },
             },
-            colors: {
-              background: '#020202', // Deeper black
-              surface: '#0A0A0A',
-              // Dynamic Theme Colors
-              theme: 'var(--theme-color)',
-              'theme-soft': 'var(--theme-soft)',
+            fadeIn: {
+              '0%': { opacity: '0' },
+              '100%': { opacity: '1' },
             },
-            boxShadow: {
-              'glass': '0 8px 32px 0 rgba(0, 0, 0, 0.3)',
-              'glow': '0 0 80px var(--theme-glow)',
+            scaleIn: {
+              '0%': { transform: 'scale(0.92)', opacity: '0' },
+              '100%': { transform: 'scale(1)', opacity: '1' },
             },
-            animation: {
-              'slide-up': 'slideUp 0.5s cubic-bezier(0.2, 0.8, 0.2, 1) forwards',
-              'fade-in': 'fadeIn 0.4s ease-out forwards',
-              'scale-in': 'scaleIn 0.3s cubic-bezier(0.2, 0.8, 0.2, 1) forwards',
-              'pulse-slow': 'pulseSlow 4s ease-in-out infinite',
+            pulseSlow: {
+              '0%, 100%': { opacity: '0.5' },
+              '50%': { opacity: '0.8' },
             },
-            keyframes: {
-              slideUp: {
-                '0%': { transform: 'translateY(30px)', opacity: '0' },
-                '100%': { transform: 'translateY(0)', opacity: '1' },
-              },
-              fadeIn: {
-                '0%': { opacity: '0' },
-                '100%': { opacity: '1' },
-              },
-              scaleIn: {
-                '0%': { transform: 'scale(0.92)', opacity: '0' },
-                '100%': { transform: 'scale(1)', opacity: '1' },
-              },
-              pulseSlow: {
-                '0%, 100%': { opacity: '0.5' },
-                '50%': { opacity: '0.8' },
-              }
-            }
-          }
-        }
-      }
-    </script>
+          },
+        },
+      },
+    };
+  </script>
 
-    <style>
-      /* Base Variables */
-      :root {
-        --theme-color: #00e676;
-        --theme-soft: rgba(0, 230, 118, 0.1);
-        --theme-glow: rgba(0, 230, 118, 0.15);
-      }
+  <style>
+    :root {
+      --theme-color: #00e676;
+      --theme-soft: rgba(0, 230, 118, 0.1);
+      --theme-glow: rgba(0, 230, 118, 0.15);
+    }
 
-      /* Global Reset & Typography */
-      * { 
-        -webkit-tap-highlight-color: transparent; 
-        outline: none !important; 
-        box-sizing: border-box;
-      }
-      
-      body {
-        background-color: #020202;
-        color: #ffffff;
-        overscroll-behavior-y: none;
-        -webkit-font-smoothing: antialiased;
-        -moz-osx-font-smoothing: grayscale;
-        font-family: 'Plus Jakarta Sans', sans-serif;
-        overflow: hidden; 
-      }
+    * {
+      -webkit-tap-highlight-color: transparent;
+      outline: none !important;
+      box-sizing: border-box;
+    }
 
-      /* Hide Arrows in Number Inputs */
-      input::-webkit-outer-spin-button,
-      input::-webkit-inner-spin-button {
-        -webkit-appearance: none;
-        margin: 0;
-      }
-      input[type=number] {
-        -moz-appearance: textfield;
-      }
+    body {
+      background-color: #020202;
+      color: #ffffff;
+      overscroll-behavior-y: none;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      overflow: hidden;
+      /* Prevent bounce on iOS when installed as PWA */
+      position: fixed;
+      width: 100%;
+    }
 
-      /* Custom Range Slider (Drag Bar) */
-      input[type=range] {
-        -webkit-appearance: none;
-        width: 100%;
-        background: transparent;
-      }
+    input::-webkit-outer-spin-button,
+    input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+    input[type=number] { -moz-appearance: textfield; }
 
-      input[type=range]:focus {
-        outline: none;
-      }
+    input[type=range] { -webkit-appearance: none; width: 100%; background: transparent; }
+    input[type=range]:focus { outline: none; }
+    input[type=range]::-webkit-slider-runnable-track {
+      width: 100%; height: 6px; cursor: pointer;
+      background: rgba(255,255,255,0.05);
+      border-radius: 10px; border: 1px solid rgba(255,255,255,0.02);
+    }
+    input[type=range]::-webkit-slider-thumb {
+      height: 24px; width: 24px; border-radius: 50%;
+      background: var(--theme-color); cursor: pointer;
+      -webkit-appearance: none; margin-top: -10px;
+      box-shadow: 0 0 15px var(--theme-glow);
+      border: 3px solid #020202; transition: transform 0.2s ease;
+    }
+    input[type=range]:active::-webkit-slider-thumb { transform: scale(1.2); }
 
-      input[type=range]::-webkit-slider-runnable-track {
-        width: 100%;
-        height: 6px;
-        cursor: pointer;
-        background: rgba(255, 255, 255, 0.05);
-        border-radius: 10px;
-        border: 1px solid rgba(255, 255, 255, 0.02);
-      }
+    ::selection { background-color: var(--theme-color); color: #000; }
 
-      input[type=range]::-webkit-slider-thumb {
-        height: 24px;
-        width: 24px;
-        border-radius: 50%;
-        background: var(--theme-color);
-        cursor: pointer;
-        -webkit-appearance: none;
-        margin-top: -10px;
-        box-shadow: 0 0 15px var(--theme-glow);
-        border: 3px solid #020202;
-        transition: transform 0.2s ease;
-      }
+    .no-scrollbar::-webkit-scrollbar { display: none; }
+    .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
 
-      input[type=range]:active::-webkit-slider-thumb {
-        transform: scale(1.2);
-      }
+    .glass {
+      background: rgba(18, 18, 18, 0.65);
+      backdrop-filter: blur(24px) saturate(180%);
+      -webkit-backdrop-filter: blur(24px) saturate(180%);
+      border-top: 1px solid rgba(255,255,255,0.08);
+      border-bottom: 1px solid rgba(255,255,255,0.02);
+      border-left: 1px solid rgba(255,255,255,0.02);
+      border-right: 1px solid rgba(255,255,255,0.02);
+    }
 
-      /* Selection Color */
-      ::selection {
-        background-color: var(--theme-color);
-        color: #000;
-      }
+    .glass-card {
+      background: linear-gradient(165deg, rgba(255,255,255,0.04) 0%, rgba(255,255,255,0.01) 100%);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border-top: 1px solid rgba(255,255,255,0.08);
+      border-bottom: 1px solid rgba(255,255,255,0.02);
+      border-radius: 24px;
+      box-shadow: 0 4px 24px -1px rgba(0,0,0,0.2);
+    }
 
-      /* Scrollbar Hiding */
-      .no-scrollbar::-webkit-scrollbar { display: none; }
-      .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+    .theme-transition {
+      transition:
+        color 0.6s cubic-bezier(0.4,0,0.2,1),
+        background-color 0.6s cubic-bezier(0.4,0,0.2,1),
+        border-color 0.6s cubic-bezier(0.4,0,0.2,1),
+        box-shadow 0.6s cubic-bezier(0.4,0,0.2,1),
+        fill 0.6s cubic-bezier(0.4,0,0.2,1),
+        stroke 0.6s cubic-bezier(0.4,0,0.2,1);
+    }
 
-      /* Advanced Glassmorphism */
-      .glass {
-        background: rgba(18, 18, 18, 0.65);
-        backdrop-filter: blur(24px) saturate(180%);
-        -webkit-backdrop-filter: blur(24px) saturate(180%);
-        border-top: 1px solid rgba(255, 255, 255, 0.08);
-        border-bottom: 1px solid rgba(255, 255, 255, 0.02);
-        border-left: 1px solid rgba(255, 255, 255, 0.02);
-        border-right: 1px solid rgba(255, 255, 255, 0.02);
-      }
+    /* Safe area utilities */
+    .pb-safe { padding-bottom: max(env(safe-area-inset-bottom), 1rem); }
+    .pt-safe { padding-top: max(env(safe-area-inset-top), 1.5rem); }
+    .top-safe { top: max(env(safe-area-inset-top), 0.75rem); }
+  </style>
 
-      .glass-card {
-        background: linear-gradient(165deg, rgba(255,255,255,0.04) 0%, rgba(255,255,255,0.01) 100%);
-        backdrop-filter: blur(16px);
-        -webkit-backdrop-filter: blur(16px);
-        border-top: 1px solid rgba(255, 255, 255, 0.08);
-        border-bottom: 1px solid rgba(255, 255, 255, 0.02);
-        border-radius: 24px;
-        box-shadow: 0 4px 24px -1px rgba(0, 0, 0, 0.2);
-      }
-
-      .theme-transition {
-        transition: 
-          color 0.6s cubic-bezier(0.4, 0, 0.2, 1), 
-          background-color 0.6s cubic-bezier(0.4, 0, 0.2, 1), 
-          border-color 0.6s cubic-bezier(0.4, 0, 0.2, 1), 
-          box-shadow 0.6s cubic-bezier(0.4, 0, 0.2, 1), 
-          fill 0.6s cubic-bezier(0.4, 0, 0.2, 1),
-          stroke 0.6s cubic-bezier(0.4, 0, 0.2, 1);
-      }
-
-      .pb-safe { padding-bottom: calc(env(safe-area-inset-bottom) + 1rem); }
-      .pt-safe { padding-top: max(env(safe-area-inset-top), 1.5rem); }
-    </style>
-    
-    <script type="importmap">
+  <script type="importmap">
 {
   "imports": {
     "sonner": "https://esm.sh/sonner@1.4.3?deps=react@18.2.0,react-dom@18.2.0",
@@ -195,22 +203,12 @@
     "@google/genai": "https://esm.sh/@google/genai@^1.40.0"
   }
 }
-</script>
-  <link rel="stylesheet" href="/index.css">
+  </script>
+
+  <link rel="stylesheet" href="/index.css" />
 </head>
-  <body>
-    <div id="root"></div>
-    <script type="module" src="/index.tsx"></script>
-    <script>
-      if ('serviceWorker' in navigator) {
-        window.addEventListener('load', () => {
-          navigator.serviceWorker.register('/sw.js').then(registration => {
-            console.log('SW registered: ', registration);
-          }).catch(registrationError => {
-            console.log('SW registration failed: ', registrationError);
-          });
-        });
-      }
-    </script>
-  </body>
+<body>
+  <div id="root"></div>
+  <script type="module" src="/index.tsx"></script>
+</body>
 </html>

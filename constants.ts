@@ -1,6 +1,6 @@
 import { Category } from './types';
-import { 
-  Coffee, ShoppingBag, Home, Zap, Heart, 
+import {
+  Coffee, ShoppingBag, Home, Zap, Heart,
   TrendingUp, HelpCircle, Smartphone, Car
 } from 'lucide-react';
 

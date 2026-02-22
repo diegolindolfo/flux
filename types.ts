@@ -4,7 +4,7 @@ export interface Category {
   id: string;
   name: string;
   icon: string;
-  color: string; // Tailwind class like 'bg-red-500'
+  color: string;
   keywords: string[];
 }
 
@@ -13,7 +13,7 @@ export interface Transaction {
   amount: number;
   description: string;
   categoryId: string;
-  date: string; // ISO String for easier serialization
+  date: string;
   type: TransactionType;
 }
 
